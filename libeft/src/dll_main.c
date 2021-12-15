@@ -49,7 +49,7 @@ struct eft_file {
     uint64_t magic; /* holds the magic number which so far always seems to be set to 1103806595072 */
     uint32_t height; /* holds the height code, with padding */
     uint32_t width; /* holds the width code, with padding */
-    char* garbage; /* Tilemap data Emergency 4 uses. */
+    char* garbage; /* Random garbage data? Looks like a tilemap */
     unsigned char* data; /* S3TC/DXT1 texture data pointer */
 };
 
@@ -82,8 +82,9 @@ unsigned char* write_eft_tiles (unsigned char** input, int* tileindexes, int til
             /* copy a single tile */
             for (int y_512 = 0; y_512 < 512; ++y_512) {
                 for (int x_512 = 0; x_512 < 512; ++x_512) {
-                    int x_offset_512 = (x_512 + 8) & 0x1FF;
-                    int y_offset_512 = x_512 > 503 ? (y_512 + 4) & 0x1FF : y_512;
+                    
+                    unsigned int x_offset_512 = (x_512 + 8) & 511;
+                    unsigned int y_offset_512 = x_512 > 503 ? (y_512 + 4) & 511 : y_512;
 
                     /* experimental tile data load (unused, some EFTs have strange tile data) */
                     int tile_address = blocknum;
@@ -110,7 +111,7 @@ unsigned char* write_eft_tiles (unsigned char** input, int* tileindexes, int til
 }
 
 /* converts an EFT tile's S3TC texture data to RGBA format. */
-unsigned char* eft2rgba (unsigned char* input, int tileindex) {
+unsigned char* eft2rgba (unsigned char* input, int tileindex, bool useBgra) {
     unsigned short color0; /* colour 0 */
     unsigned short color1; /* colour 1 */
     unsigned int codes; /* code stream to decode 4x4 block */
@@ -226,10 +227,17 @@ unsigned char* eft2rgba (unsigned char* input, int tileindex) {
                     }
                     
                     /* set the RGBA values to the black colours computed */
-                    rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].r = rgb_row[(3 * xb)];
-                    rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].g = rgb_row[(3 * xb) + 1];
-                    rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].b = rgb_row[(3 * xb) + 2];
-                    rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].a = 255;
+                    if (useBgra == true) {
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].b = rgb_row[(3 * xb)];
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].g = rgb_row[(3 * xb) + 1];
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].r = rgb_row[(3 * xb) + 2];
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].a = 255;
+                    } else {
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].r = rgb_row[(3 * xb)];
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].g = rgb_row[(3 * xb) + 1];
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].b = rgb_row[(3 * xb) + 2];
+                        rgba_buf[ ( (yb + y * 4) * 512) + (4 * x) + xb ].a = 255;
+                    }
                 }
             }
         }
@@ -302,27 +310,37 @@ extern __declspec(dllexport) unsigned char* load_eft_file_rgba (const char* file
     fread(input_file.data, filesize-0x400, 1, file);
     fclose(file);
 
-    unsigned char** tilemap = malloc(filesize-0x400);
-    int tilecount = 0;
-    if (tilemap == NULL) return NULL;
-    else {
-        for (int i = 0; i < (filesize-0x400) / 131072; ++i) {
-            //populate all the tiles.
-            tilemap[i] = eft2rgba(input_file.data, i);
-            tilecount += 1;
-        }
-    }
+    unsigned char* rgba_stream = NULL;
 
-    unsigned char* rgba_stream = write_eft_tiles(tilemap, (int*)input_file.garbage, tilecount, input_file.width, input_file.height, 0, swapWH);
-    for (int i = 0; i < 256; ++i) {
-		if (tilemap[i] != NULL) {
-			free(tilemap[i]);
-		}
-	}
-	if (tilemap != NULL) free(tilemap);
-    if (input_file.garbage != NULL) free(input_file.garbage);
-	if (input_file.data != NULL) free(input_file.data);
-    if (rgba_stream == NULL) printf("oops! no image data... for some reason.\n");
+    /* if the width and height of the EFT are both 512x512, skip tilemap creation */
+    if (input_file.width == 512 && input_file.height == 512) {
+        rgba_stream = eft2rgba(input_file.data, 0, false);
+        if (input_file.garbage != NULL) free(input_file.garbage);
+        if (input_file.data != NULL) free(input_file.data);
+        if (rgba_stream == NULL) printf("oops! no image data... for some reason.\n");
+    } else {
+        unsigned char** tilemap = malloc(filesize-0x400);
+        int tilecount = 0;
+        if (tilemap == NULL) return NULL;
+        else {
+            for (int i = 0; i < (filesize-0x400) / 131072; ++i) {
+                //populate all the tiles.
+                tilemap[i] = eft2rgba(input_file.data, i, false);
+                tilecount += 1;
+            }
+        }
+
+        rgba_stream = write_eft_tiles(tilemap, (int*)input_file.garbage, tilecount, input_file.width, input_file.height, 0, swapWH);
+        for (int i = 0; i < 256; ++i) {
+            if (tilemap[i] != NULL) {
+                free(tilemap[i]);
+            }
+        }
+        if (tilemap != NULL) free(tilemap);
+        if (input_file.garbage != NULL) free(input_file.garbage);
+        if (input_file.data != NULL) free(input_file.data);
+        if (rgba_stream == NULL) printf("oops! no image data... for some reason.\n");
+    }
 
     /* set the width and height arguments, then return the pointer */
     *width = swapWH == true ? input_file.height : input_file.width;
@@ -391,27 +409,37 @@ extern __declspec(dllexport) unsigned char* load_eft_file_bgra (const char* file
     fread(input_file.data, filesize-0x400, 1, file);
     fclose(file);
 
-	unsigned char** tilemap = malloc(filesize-0x400);
-    int tilecount = 0;
-    if (tilemap == NULL) return NULL;
-    else {
-        for (int i = 0; i < (filesize-0x400) / 131072; ++i) {
-            //populate all the tiles.
-            tilemap[i] = eft2rgba(input_file.data, i);
-            tilecount += 1;
-        }
-    }
+	unsigned char* rgba_stream = NULL;
 
-    unsigned char* rgba_stream = write_eft_tiles(tilemap, (int*)input_file.garbage, tilecount, input_file.width, input_file.height, 1, swapWH);
-    for (int i = 0; i < 256; ++i) {
-		if (tilemap[i] != NULL) {
-			free(tilemap[i]);
-		}
-	}
-    if (tilemap != NULL) free(tilemap);
-    if (input_file.garbage != NULL) free(input_file.garbage);
-	if (input_file.data != NULL) free(input_file.data);
-    if (rgba_stream == NULL) printf("oops! no image data... for some reason.\n");
+    /* if the width and height of the EFT are both 512x512, skip tilemap creation */
+    if (input_file.width == 512 && input_file.height == 512) {
+        rgba_stream = eft2rgba(input_file.data, 0, true);
+        if (input_file.garbage != NULL) free(input_file.garbage);
+        if (input_file.data != NULL) free(input_file.data);
+        if (rgba_stream == NULL) printf("oops! no image data... for some reason.\n");
+    } else {
+        unsigned char** tilemap = malloc(filesize-0x400);
+        int tilecount = 0;
+        if (tilemap == NULL) return NULL;
+        else {
+            for (int i = 0; i < (filesize-0x400) / 131072; ++i) {
+                //populate all the tiles.
+                tilemap[i] = eft2rgba(input_file.data, i, false);
+                tilecount += 1;
+            }
+        }
+
+        rgba_stream = write_eft_tiles(tilemap, (int*)input_file.garbage, tilecount, input_file.width, input_file.height, 1, swapWH);
+        for (int i = 0; i < 256; ++i) {
+            if (tilemap[i] != NULL) {
+                free(tilemap[i]);
+            }
+        }
+        if (tilemap != NULL) free(tilemap);
+        if (input_file.garbage != NULL) free(input_file.garbage);
+        if (input_file.data != NULL) free(input_file.data);
+        if (rgba_stream == NULL) printf("oops! no image data... for some reason.\n");
+    }
 
     /* set the width and height arguments, then return the pointer */
     *width = swapWH == true ? input_file.height : input_file.width;
