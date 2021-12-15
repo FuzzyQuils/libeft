@@ -1,10 +1,11 @@
 # LibEFT: an EFT loading DLL for Emergency mods!
 
-"Ladies and gentlemen, I present...
-The disguised S3TC texture.
-There's no way it's anything else.
-I did the math."
-- Jean-Luc Mackail, 2021
+>"Ladies and gentlemen, I present...
+>The disguised S3TC texture.
+>There's no way it's anything else.
+>I did the math."
+>
+> Jean-Luc Mackail, 2021
 
 This is the source for the DLL that powers EFTXplorer.  :)
 The program for loading and exporting EFT files from the Emergency games can be found here:
