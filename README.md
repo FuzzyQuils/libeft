@@ -18,7 +18,7 @@ Building:
 - As a result, mingw on Windows is required to build this DLL. (Pull requests to get it built under Visual Studio are welcome)
 - To build with mingw, assuming mingw is on your Windows PATH:
 
-`C:\Users\YourUsername> mingw32-make eft_loader_x86.dll eft_loader_x64.dll`
+`C:\Users\YourUsername> mingw32-make all`
 
 The DLLs will show up in the `/bin` folder.
 
