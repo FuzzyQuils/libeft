@@ -10,7 +10,7 @@
 > "So that's what happens when you smoke during pregnancy huh
 > You get a developer who came up with this"
 >
-> Annabel, 2021, talking about one particularly tricky tiling issue we were getting.
+> Annabel Jocelyn Sandford, 2021, talking about one particularly tricky tiling issue we were getting.
 
 This is the source for the DLL that powers EFTXplorer.  :)
 The program for loading and exporting EFT files from the Emergency games can be found here:
