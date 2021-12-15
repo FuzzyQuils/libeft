@@ -5,13 +5,16 @@
 >There's no way it's anything else.
 >I did the math."
 >
-> Jean-Luc Mackail, 2021
+> Jean-Luc Mackail, 2021, on the first reverse-engineering attempt.
+
+> "So that's what happens when you smoke during pregnancy huh
+> You get a developer who came up with this"
+>
+> Annabel, 2021, talking about one particularly tricky tiling issue we were getting.
 
 This is the source for the DLL that powers EFTXplorer.  :)
 The program for loading and exporting EFT files from the Emergency games can be found here:
 https://github.com/annabelsandford/EFTXplorer
-
-(Jokes aside from the quote above, the process ended up being quite a bit more involved!)
 
 Building:
 - Currently, due to admittedly my stinginess with not using Visual Studio, the DLL currently only builds properly for 64-bit through MinGW (The 32-bit DLL works but interacts badly with C# code at the moment, works fine with C code otherwise)
