@@ -16,6 +16,8 @@ This is the source for the DLL that powers EFTXplorer.  :)
 The program for loading and exporting EFT files from the Emergency games can be found here:
 https://github.com/annabelsandford/EFTXplorer
 
+Please note this library only works on EM3 and EM4 EFT files, EFT files from the 2012 and higher games are a completely different format and currently I don't have the slightest idea of how they work.
+
 Building:
 - Currently, due to admittedly my stinginess with not using Visual Studio, the DLL currently only builds properly for 64-bit through MinGW (The 32-bit DLL works but interacts badly with C# code at the moment, works fine with C code otherwise)
 - As a result, mingw on Windows is required to build this DLL. (Pull requests to get it built under Visual Studio are welcome)
@@ -28,7 +30,7 @@ The DLLs will show up in the `/bin` folder.
 Using:
 
 todo: write this section. XD
-might wanna make a few Python devs happy too at some point.
+Might wanna make a few Python devs happy too at some point.
 
 Credits:
 - Annabel Jocelyn Sandford (Twitter > https://twitter.com/annie_sandford)
