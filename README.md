@@ -1,4 +1,4 @@
-# LibEFT: an EFT loading DLL for Emergency mods!
+# LibEFT: an EFT loading DLL for Emergency 3/Emergency 4 mods!
 
 >"Ladies and gentlemen, I present...
 >The disguised S3TC texture.
