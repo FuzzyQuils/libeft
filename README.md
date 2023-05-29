@@ -38,5 +38,5 @@ Credits:
   Well, maybe one day I will, but I love my low level stuff.
 
 - Jean-Luc Mackail (Twitter > https://twitter.com/fuzzyquills)
-  Yep, *the* FuzzyQuils! Tf anyone recognises the name from somewhere, it's me!
+  Yep, *the* FuzzyQuils! If anyone recognises the name from somewhere, it's me!
   The mastermind who reverse engineered the EFT format. Was quite the journey.
